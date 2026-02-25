@@ -231,7 +231,7 @@ export default function Settings() {
       <div className="data-card p-5 sm:p-8 flex flex-col md:flex-row items-center gap-4 sm:gap-6 text-center md:text-left">
         <div className="h-24 w-24 rounded-3xl bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/40">
           <img
-            src="/src/public/saving-pig-icono2.png"
+            src="/saving-pig-icono2.png"
             alt="Saving Pig"
             className="w-12 h-12 object-contain"
           />

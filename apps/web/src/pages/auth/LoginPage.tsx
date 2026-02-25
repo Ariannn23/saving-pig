@@ -56,7 +56,7 @@ export const LoginPage = () => {
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-rose-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <img
-              src="/src/public/saving-pig-icono2.png"
+              src="/saving-pig-icono2.png"
               alt="Saving Pig"
               className="w-10 h-10 object-contain"
             />
