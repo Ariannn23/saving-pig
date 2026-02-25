@@ -489,7 +489,7 @@ export default function Settings() {
 
       <div className="text-center">
         <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">
-          Saving Pig v0.1.0 • Hecho para vos
+          Saving Pig v0.1.0 • By SharkCorp. S.A.C.
         </p>
       </div>
     </div>
