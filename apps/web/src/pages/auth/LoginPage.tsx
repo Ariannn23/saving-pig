@@ -2,15 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
-import {
-  Mail,
-  Lock,
-  Loader2,
-  PiggyBank,
-  UserPlus,
-  LogIn,
-  User,
-} from "lucide-react";
+import { Mail, Lock, Loader2, UserPlus, LogIn, User } from "lucide-react";
 
 export const LoginPage = () => {
   const { session } = useAuthStore();
@@ -63,7 +55,11 @@ export const LoginPage = () => {
       <div className="glass-card p-8 w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-rose-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <PiggyBank className="w-10 h-10 text-rose-500" />
+            <img
+              src="/src/public/saving-pig-icono2.png"
+              alt="Saving Pig"
+              className="w-10 h-10 object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
             {isRegistering ? "Crear Cuenta" : "Bienvenido a"}{" "}

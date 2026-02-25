@@ -6,7 +6,6 @@ import {
   Target,
   Settings,
   Plus,
-  PiggyBank,
   PieChart,
 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
@@ -52,7 +51,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         <div className="flex h-full flex-col p-6">
           <Link to="/" className="mb-12 flex items-center gap-3 group">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-600 to-rose-400 shadow-xl shadow-rose-950/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ring-1 ring-white/20">
-              <PiggyBank className="h-7 w-7 text-white drop-shadow-md" />
+              <img
+                src="/src/public/saving-pig-icono2.png"
+                alt="Saving Pig"
+                className="h-7 w-7 object-contain drop-shadow-md"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-black tracking-widest text-white leading-none">

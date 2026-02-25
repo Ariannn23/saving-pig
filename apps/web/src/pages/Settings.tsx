@@ -5,7 +5,6 @@ import {
   LogOut,
   ChevronRight,
   ChevronDown,
-  PiggyBank,
   Save,
   Key,
   Trash2,
@@ -231,7 +230,11 @@ export default function Settings() {
       {/* ── Profile Header ── */}
       <div className="data-card p-5 sm:p-8 flex flex-col md:flex-row items-center gap-4 sm:gap-6 text-center md:text-left">
         <div className="h-24 w-24 rounded-3xl bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/40">
-          <PiggyBank className="w-12 h-12 text-white" />
+          <img
+            src="/src/public/saving-pig-icono2.png"
+            alt="Saving Pig"
+            className="w-12 h-12 object-contain"
+          />
         </div>
         <div className="flex-1 space-y-1">
           <h2 className="text-2xl font-bold">
