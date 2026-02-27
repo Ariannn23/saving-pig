@@ -30,6 +30,13 @@ interface TransactionModalProps {
   onClose: () => void;
 }
 
+interface FormErrors {
+  amount?: string;
+  categoryId?: string;
+  description?: string;
+  date?: string;
+}
+
 export const TransactionModal = ({
   isOpen,
   onClose,
@@ -45,7 +52,6 @@ export const TransactionModal = ({
 
   const isEditing = !!transactionToEdit;
 
-  // Deduplicar categorías por nombre
   const categories = rawCategories?.reduce((acc: any[], current: any) => {
     const name = (current.name || "").trim().toLowerCase();
     const exists = acc.find(
@@ -54,7 +60,6 @@ export const TransactionModal = ({
     return exists ? acc : [...acc, current];
   }, []);
 
-  // Deduplicar cuentas por nombre (evita mostrar duplicados si el trigger de DB se disparó dos veces)
   const accounts = rawAccounts?.reduce((acc: any[], current: any) => {
     const name = (current.name || "").trim().toLowerCase();
     const exists = acc.find(
@@ -62,6 +67,7 @@ export const TransactionModal = ({
     );
     return exists ? acc : [...acc, current];
   }, []);
+
   const todayIso = () => new Date().toISOString().split("T")[0];
 
   const [type, setType] = useState<"income" | "expense">("expense");
@@ -75,6 +81,7 @@ export const TransactionModal = ({
   const [uploadingFile, setUploadingFile] = useState(false);
   const [isClassifying, setIsClassifying] = useState(false);
   const [step, setStep] = useState<"form" | "success">("form");
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasLoadedRef = useRef(false);
@@ -94,7 +101,6 @@ export const TransactionModal = ({
       setAccountId(transactionToEdit.account_id);
       setCategoryId(transactionToEdit.category_id || "");
       setEvidenceUrl(transactionToEdit.evidence_url || null);
-      // date comes as ISO string e.g. "2024-02-14T00:00:00..."
       setDate(
         transactionToEdit.date
           ? transactionToEdit.date.split("T")[0]
@@ -108,6 +114,7 @@ export const TransactionModal = ({
       setEvidenceUrl(null);
       setDate(todayIso());
       setStep("form");
+      setErrors({});
 
       if (accounts && accounts.length > 0) {
         setAccountId(accounts[0].id);
@@ -115,7 +122,6 @@ export const TransactionModal = ({
     }
   }, [isOpen, isEditing]);
 
-  // Auto-select first account on load (create mode)
   useEffect(() => {
     if (isOpen && !isEditing && accounts && accounts.length > 0 && !accountId) {
       setAccountId(accounts[0].id);
@@ -128,27 +134,39 @@ export const TransactionModal = ({
     const val = e.target.value;
     if (/^(\d+\.?\d{0,2})?$/.test(val)) {
       setAmount(val);
+      if (errors.amount) setErrors((prev) => ({ ...prev, amount: undefined }));
     }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!amount || Number(amount) <= 0) {
+      newErrors.amount = "Ingresa un monto válido";
+    }
+
+    if (!categoryId) {
+      newErrors.categoryId = "Selecciona una categoría";
+    }
+
+    if (!description || description.trim().length < 3) {
+      newErrors.description = "La descripción es obligatoria";
+    }
+
+    if (!date) {
+      newErrors.date = "Selecciona una fecha";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedAmount = parseFloat(amount);
 
-    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      toast.warning("Ingresa un monto válido mayor a 0.");
-      return;
-    }
-    if (!categoryId || !description || !accountId) {
-      toast.warning("Por favor completa todos los campos obligatorios.");
-      return;
-    }
-    if (accountId.length < 30 || categoryId.length < 30) {
-      toast.error(
-        "Error de validación: Selección de cuenta o categoría inválida.",
-      );
-      return;
-    }
+    if (!validateForm()) return;
+
+    const parsedAmount = parseFloat(amount);
 
     try {
       let finalEvidenceUrl = evidenceUrl;
@@ -222,6 +240,7 @@ export const TransactionModal = ({
     setCategoryId("");
     setDate(todayIso());
     setStep("form");
+    setErrors({});
     hasLoadedRef.current = false;
     onClose();
   };
@@ -260,7 +279,7 @@ export const TransactionModal = ({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5" noValidate>
               {/* Type Switcher */}
               <div className="flex bg-slate-900 p-1 rounded-xl border border-white/5">
                 <button
@@ -300,13 +319,17 @@ export const TransactionModal = ({
                     type="text"
                     inputMode="decimal"
                     placeholder="0.00"
-                    className="glass-input w-full !pl-14 text-xl font-bold tracking-tight focus:bg-white/10"
+                    className={`glass-input w-full !pl-14 text-xl font-bold tracking-tight focus:bg-white/10 ${
+                      errors.amount ? "border-rose-500/60" : ""
+                    }`}
                     value={amount}
                     onChange={handleAmountChange}
-                    required
                     autoComplete="off"
                   />
                 </div>
+                {errors.amount && (
+                  <p className="text-xs text-rose-400 ml-1">{errors.amount}</p>
+                )}
               </div>
 
               {/* Categoría */}
@@ -331,10 +354,17 @@ export const TransactionModal = ({
                 </div>
                 <Select
                   value={categoryId}
-                  onChange={setCategoryId}
+                  onChange={(val) => {
+                    setCategoryId(val);
+                    if (errors.categoryId)
+                      setErrors((prev) => ({ ...prev, categoryId: undefined }));
+                  }}
                   options={categoryOptions}
                   placeholder="Seleccionar categoría..."
                 />
+                {errors.categoryId && (
+                  <p className="text-xs text-rose-400 ml-1">{errors.categoryId}</p>
+                )}
               </div>
 
               {/* Descripción */}
@@ -346,20 +376,35 @@ export const TransactionModal = ({
                   type="text"
                   placeholder="Ej: Almuerzo trabajo"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (errors.description)
+                      setErrors((prev) => ({ ...prev, description: undefined }));
+                  }}
                   validation={validators.description}
                   validationMessage={validationMessages.description}
-                  required
                 />
+                {errors.description && (
+                  <p className="text-xs text-rose-400 ml-1">{errors.description}</p>
+                )}
               </div>
 
               {/* Fecha */}
-              <DatePicker
-                value={date}
-                onChange={setDate}
-                maxDate={todayIso()}
-                label="Fecha"
-              />
+              <div className="space-y-1.5">
+                <DatePicker
+                  value={date}
+                  onChange={(val) => {
+                    setDate(val);
+                    if (errors.date)
+                      setErrors((prev) => ({ ...prev, date: undefined }));
+                  }}
+                  maxDate={todayIso()}
+                  label="Fecha"
+                />
+                {errors.date && (
+                  <p className="text-xs text-rose-400 ml-1">{errors.date}</p>
+                )}
+              </div>
 
               {/* Cuenta */}
               {accounts && accounts.length > 1 && (
@@ -382,7 +427,6 @@ export const TransactionModal = ({
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
                   Evidencia Visual
                 </label>
-                {/* Preview existing evidence when editing */}
                 {evidenceUrl && !file && (
                   <div className="relative rounded-xl overflow-hidden border border-white/10">
                     <img

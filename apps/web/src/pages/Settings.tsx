@@ -153,6 +153,19 @@ const Panel = ({
 export default function Settings() {
   const { user, signOut } = useAuthStore();
   const toast = useToast();
+  // Obtener nombre para mostrar e iniciales
+  const userName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Usuario";
+  
+  // Función para generar iniciales (ej: "Arian 23" -> "A2")
+const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const initials = getInitials(userName);
 
   const [openPanel, setOpenPanel] = useState<string | null>(null);
   const toggle = (id: string) => setOpenPanel((p) => (p === id ? null : id));
@@ -229,20 +242,19 @@ export default function Settings() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* ── Profile Header ── */}
+      {/* ── Profile Header Actualizado ── */}
       <div className="data-card p-5 sm:p-8 flex flex-col md:flex-row items-center gap-4 sm:gap-6 text-center md:text-left">
-        <div className="h-24 w-24 rounded-3xl bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/40">
-          <img
-            src="/saving-pig-icono2.png"
-            alt="Saving Pig"
-            className="w-12 h-12 object-contain"
-          />
+        
+        {/* Avatar con Iniciales Estilo Dinámico */}
+        <div className="h-24 w-24 rounded-3xl bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/40 border-4 border-white/5">
+          <span className="text-3xl font-black text-white tracking-tighter">
+            {initials}
+          </span>
         </div>
+
         <div className="flex-1 space-y-1">
-          <h2 className="text-2xl font-bold">
-            {user?.user_metadata?.display_name ||
-              user?.email?.split("@")[0] ||
-              "Usuario"}
+          <h2 className="text-2xl font-bold text-white">
+            {userName}
           </h2>
           <p className="text-slate-500 font-medium italic">{user?.email}</p>
           <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2">
@@ -254,11 +266,10 @@ export default function Settings() {
             </span>
           </div>
         </div>
+
         {/* Quick action */}
         <button
-          onClick={() => {
-            setOpenPanel("profile");
-          }}
+          onClick={() => setOpenPanel("profile")}
           className="shrink-0 px-4 py-2 rounded-xl border border-white/10 text-sm font-bold text-slate-400 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all flex items-center gap-2"
         >
           <User className="h-4 w-4" />

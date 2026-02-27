@@ -22,6 +22,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/store/useToastStore";
 import { financeService } from "@/services/financeService";
 import { useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/Input";
+import { validators, validationMessages } from "@/utils/validators";
 
 const GoalAIIcon = ({
   goal,
@@ -76,6 +78,7 @@ export default function Goals() {
   const hasCompletedGoals = (goals ?? []).some(
     (g: any) => g?.completed_at != null,
   );
+  const [errors, setErrors] = useState<{ name?: string; target?: string }>({});
 
   // Active goals share the full balance — completed goals are just archived
   const availableBalance = Math.max(0, totalBalance);
@@ -93,21 +96,45 @@ export default function Goals() {
     (monthlySummary?.income ?? 0) - (monthlySummary?.expenses ?? 0);
 
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName || !newTarget) return;
+  e.preventDefault();
 
-    await createGoal.mutateAsync({
-      name: newName,
-      target_amount: parseFloat(newTarget),
-      current_amount: 0,
-      color: newColor,
-    });
+  const newErrors: { name?: string; target?: string } = {};
 
-    toast.success(`¡Meta "${newName}" creada!`);
-    setIsModalOpen(false);
-    setNewName("");
-    setNewTarget("");
-  };
+  // Nombre
+  if (!validators.required(newName)) {
+    newErrors.name = validationMessages.required;
+  } else if (!validators.nameOnly(newName)) {
+    newErrors.name = validationMessages.nameOnly;
+  }
+
+  // Target
+  if (!validators.required(newTarget)) {
+    newErrors.target = validationMessages.required;
+  } else if (!validators.amount(newTarget)) {
+    newErrors.target = validationMessages.amount;
+  }
+
+  // Si hay errores → no enviar
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  // Limpiar errores
+  setErrors({});
+
+  await createGoal.mutateAsync({
+    name: newName,
+    target_amount: parseFloat(newTarget),
+    current_amount: 0,
+    color: newColor,
+  });
+
+  toast.success(`¡Meta "${newName}" creada!`);
+  setIsModalOpen(false);
+  setNewName("");
+  setNewTarget("");
+};
 
   const handleDelete = async () => {
     if (!deleteConfirm) return;
@@ -345,108 +372,120 @@ export default function Goals() {
         </motion.button>
       </div>
 
-      {/* Modal Nueva Meta */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="glass-card bg-slate-950 w-full max-w-sm p-8 space-y-6 relative z-10"
-            >
-              <h2 className="text-2xl font-black tracking-tight italic">
-                Nueva <span className="text-rose-500">Meta</span>
-              </h2>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                    Nombre
-                  </label>
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className="glass-input w-full text-sm"
-                    placeholder="Ej: Viaje a la playa"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                    Objetivo ($)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="0.01"
-                    value={newTarget}
-                    onChange={(e) => setNewTarget(e.target.value)}
-                    className="glass-input w-full text-sm"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                    Color Identificador
-                  </label>
-                  <div className="flex gap-2 p-1">
-                    {[
-                      "#F43F5E",
-                      "#10B981",
-                      "#3B82F6",
-                      "#8B5CF6",
-                      "#F59E0B",
-                    ].map((color) => (
-                      <motion.button
-                        key={color}
-                        type="button"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => setNewColor(color)}
-                        className={`h-8 w-8 rounded-lg transition-transform ${newColor === color ? "scale-110 ring-2 ring-white/50 shadow-lg" : "opacity-50 hover:opacity-100"}`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 btn-secondary text-xs"
-                  >
-                    Cancelar
-                  </motion.button>
-                  <motion.button
-                    type="submit"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex-1 btn-primary text-xs"
-                    disabled={createGoal.isPending}
-                  >
-                    {createGoal.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                    ) : (
-                      "Crear Meta"
-                    )}
-                  </motion.button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+     {/* Modal Nueva Meta */}
+<AnimatePresence>
+  {isModalOpen && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setIsModalOpen(false)}
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+      />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="glass-card bg-slate-950 w-full max-w-sm p-8 space-y-6 relative z-10"
+      >
+        <h2 className="text-2xl font-black tracking-tight italic">
+          Nueva <span className="text-rose-500">Meta</span>
+        </h2>
+
+        <form onSubmit={handleCreate} className="space-y-4">
+  {/* Nombre */}
+<div className="space-y-1">
+  <Input
+    type="text"
+    placeholder="Ej: Viaje a la playa"
+    value={newName}
+    onChange={(e) => {
+      setNewName(e.target.value);
+      setErrors((prev) => ({ ...prev, name: undefined }));
+    }}
+    label="Nombre"
+    icon={Target}
+  />
+
+  {errors.name && (
+    <p className="text-[11px] text-rose-400 font-medium ml-1">
+      {errors.name}
+    </p>
+  )}
+</div>
+  {/* Objetivo */}
+<div className="space-y-1">
+  <Input
+    type="number"
+    placeholder="0.00"
+    value={newTarget}
+    onChange={(e) => {
+      setNewTarget(e.target.value);
+      setErrors((prev) => ({ ...prev, target: undefined }));
+    }}
+    label="Objetivo ($)"
+    icon={Plus}
+  />
+
+  {errors.target && (
+    <p className="text-[11px] text-rose-400 font-medium ml-1">
+      {errors.target}
+    </p>
+  )}
+</div>
+  {/* Color */}
+  <div className="space-y-1">
+    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+      Color Identificador
+    </label>
+    <div className="flex gap-2 p-1">
+      {["#F43F5E","#10B981","#3B82F6","#8B5CF6","#F59E0B"].map((color) => (
+        <motion.button
+          key={color}
+          type="button"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setNewColor(color)}
+          className={`h-8 w-8 rounded-lg transition-transform ${
+            newColor === color
+              ? "scale-110 ring-2 ring-white/50 shadow-lg"
+              : "opacity-50 hover:opacity-100"
+          }`}
+          style={{ backgroundColor: color }}
+        />
+      ))}
+    </div>
+  </div>
+
+  {/* Botones */}
+  <div className="flex gap-3 pt-4">
+    <motion.button
+      type="button"
+      onClick={() => setIsModalOpen(false)}
+      className="flex-1 btn-secondary text-xs"
+    >
+      Cancelar
+    </motion.button>
+
+    <motion.button
+      type="submit"
+  className="flex-1 btn-primary text-xs"
+  disabled={createGoal.isPending}
+    >
+      {createGoal.isPending ? (
+        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+      ) : (
+        "Crear Meta"
+      )}
+    </motion.button>
+  </div>
+</form>
+      </motion.div>
+    </div>
+  )}
+</AnimatePresence>
 
       {/* Delete Confirm */}
       <ConfirmDialog
