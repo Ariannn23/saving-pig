@@ -6,7 +6,6 @@ import {
   Loader2,
   CheckCircle2,
   Sparkles,
-  Calendar,
   Building2,
 } from "lucide-react";
 import {
@@ -20,7 +19,10 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useAIClassification } from "@/hooks/useAI";
 import { useUIStore } from "@/store/useUIStore";
 import { Select } from "@/components/ui/Select";
+import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { getCategoryIcon } from "@/utils/categoryUtils";
+import { validators, validationMessages } from "@/utils/validators";
 import { useToast } from "@/store/useToastStore";
 
 interface TransactionModalProps {
@@ -240,17 +242,17 @@ export const TransactionModal = ({
     createTransaction.isPending || updateTransaction.isPending || uploadingFile;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="glass-card w-full max-w-sm overflow-hidden shadow-2xl ring-1 ring-white/10 max-h-[calc(100vh-2rem)] overflow-y-auto scrollbar-subtle">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
+      <div className="glass-card w-full max-w-md overflow-hidden shadow-2xl ring-1 ring-white/10 max-h-[calc(100vh-1.5rem)] overflow-y-auto scrollbar-subtle">
         {step === "form" ? (
           <>
-            <div className="flex items-center justify-between p-6 border-b border-white/5">
-              <h2 className="text-xl font-bold">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/5 sticky top-0 bg-slate-950/50 backdrop-blur-sm z-10">
+              <h2 className="text-lg sm:text-xl font-bold truncate">
                 {isEditing ? "Editar Registro" : "Nuevo Registro"}
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors"
+                className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors flex-shrink-0 ml-2"
                 aria-label="Cerrar modal"
                 title="Cerrar"
               >
@@ -258,7 +260,7 @@ export const TransactionModal = ({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
               {/* Type Switcher */}
               <div className="flex bg-slate-900 p-1 rounded-xl border border-white/5">
                 <button
@@ -340,33 +342,24 @@ export const TransactionModal = ({
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
                   Descripción
                 </label>
-                <input
+                <Input
                   type="text"
                   placeholder="Ej: Almuerzo trabajo"
-                  className="glass-input w-full text-sm"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  validation={validators.description}
+                  validationMessage={validationMessages.description}
                   required
-                  autoComplete="off"
                 />
               </div>
 
               {/* Fecha */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1 flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Fecha
-                </label>
-                <input
-                  type="date"
-                  className="glass-input w-full text-sm [color-scheme:dark]"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  max={todayIso()}
-                  required
-                  title="Fecha de la transacción"
-                />
-              </div>
+              <DatePicker
+                value={date}
+                onChange={setDate}
+                maxDate={todayIso()}
+                label="Fecha"
+              />
 
               {/* Cuenta */}
               {accounts && accounts.length > 1 && (
@@ -460,16 +453,16 @@ export const TransactionModal = ({
             </form>
           </>
         ) : (
-          <div className="p-12 text-center space-y-6">
-            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto animate-bounce">
-              <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+          <div className="p-8 sm:p-12 text-center space-y-6">
+            <div className="w-16 sm:w-20 h-16 sm:h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto animate-bounce">
+              <CheckCircle2 className="h-8 sm:h-10 w-8 sm:w-10 text-emerald-500" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold italic tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold italic tracking-tight">
                 ¡{isEditing ? "Actualización" : "Registro"}{" "}
                 <span className="text-emerald-400">Exitosa</span>!
               </h2>
-              <p className="text-slate-400">
+              <p className="text-sm sm:text-base text-slate-400">
                 Tu transacción ha sido guardada correctamente.
               </p>
             </div>

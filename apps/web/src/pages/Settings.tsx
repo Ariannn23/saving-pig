@@ -20,6 +20,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAlerts, useMarkAlertAsRead } from "@/hooks/useFinance";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/store/useToastStore";
+import { Input } from "@/components/ui/Input";
+import { validators, validationMessages } from "@/utils/validators";
 
 /* ─── Toggle Switch ────────────────────────────────────────────── */
 const Toggle = ({
@@ -277,31 +279,27 @@ export default function Settings() {
           />
           <Panel open={openPanel === "profile"}>
             <div className="space-y-3">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Nombre de usuario
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="flex-1 min-w-0 bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/30"
-                  placeholder="Tu nombre"
-                />
-                <button
-                  onClick={handleSaveName}
-                  disabled={isSavingName}
-                  className="btn-primary px-3 sm:px-4 py-2.5 text-sm flex items-center gap-1.5 shrink-0"
-                >
-                  <Save className="h-4 w-4" />
-                  <span className="hidden sm:inline">
-                    {isSavingName ? "Guardando..." : "Guardar"}
-                  </span>
-                  <span className="sm:hidden">
-                    {isSavingName ? "..." : "OK"}
-                  </span>
-                </button>
-              </div>
+              <Input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Tu nombre"
+                label="Nombre de usuario"
+                icon={User}
+                validation={validators.nameOnly}
+                validationMessage={validationMessages.nameOnly}
+                containerClass="flex-1"
+              />
+              <button
+                onClick={handleSaveName}
+                disabled={isSavingName || !displayName.trim()}
+                className="btn-primary px-3 sm:px-4 py-2.5 text-sm flex items-center gap-1.5 w-full sm:w-auto disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                <span>
+                  {isSavingName ? "Guardando..." : "Guardar"}
+                </span>
+              </button>
               <p className="text-[11px] text-slate-600">
                 Este nombre se muestra en tu perfil de Saving Pig.
               </p>
@@ -325,17 +323,19 @@ export default function Settings() {
                   Cambiar Contraseña
                 </p>
                 <div className="relative">
-                  <input
+                  <Input
                     type={showPw ? "text" : "password"}
                     value={newPw}
                     onChange={(e) => setNewPw(e.target.value)}
-                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/30"
                     placeholder="Nueva contraseña (mín. 6 caracteres)"
+                    validation={validators.password}
+                    validationMessage={validationMessages.password}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                    className="absolute right-3 top-3 text-slate-500 hover:text-white transition-colors"
+                    tabIndex={-1}
                   >
                     {showPw ? (
                       <EyeOff className="h-4 w-4" />
@@ -346,8 +346,8 @@ export default function Settings() {
                 </div>
                 <button
                   onClick={handleChangePassword}
-                  disabled={isSavingPw || !newPw}
-                  className="btn-primary px-4 py-2 text-sm flex items-center gap-2 disabled:opacity-40"
+                  disabled={isSavingPw || !newPw || newPw.length < 6}
+                  className="btn-primary px-4 py-2 text-sm flex items-center gap-2 disabled:opacity-40 w-full sm:w-auto"
                 >
                   <Key className="h-4 w-4" />
                   {isSavingPw ? "Actualizando..." : "Actualizar contraseña"}
