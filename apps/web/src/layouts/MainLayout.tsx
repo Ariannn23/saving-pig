@@ -129,10 +129,30 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       {/* Main Content Area */}
       <main className="lg:pl-64 pb-24 lg:pb-0">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between bg-slate-950/40 px-6 backdrop-blur-xl lg:h-20">
-          <h1 className="text-lg font-bold lg:text-3xl lg:tracking-tighter">
-            {navItems.find((i) => i.path === location.pathname)?.label ||
-              "SAVING PIG"}
-          </h1>
+          <h1 className="flex items-center gap-2 lg:text-3xl lg:tracking-tighter font-bold">
+  {/* Mobile brand */}
+  <div className="flex items-center gap-2 lg:hidden">
+    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-rose-400 shadow-md ring-1 ring-white/20">
+      <img
+        src="/saving-pig-icono2.png"
+        alt="Saving Pig"
+        className="h-5 w-5 object-contain"
+      />
+    </div>
+
+    <div className="flex flex-col leading-none">
+      <span className="text-m font-bold tracking-widest text-white">
+        SAVING
+      </span>
+      <span className="text-[13px] font-bold tracking-[0.3em] text-rose-500 opacity-80">
+        PIG
+      </span>
+    </div>
+  </div>
+
+  {/* Desktop title (vacío porque ya está el sidebar) */}
+  <span className="hidden lg:block"></span>
+</h1>
           <div className="flex items-center gap-2 lg:gap-4">
             <NotificationCenter />
             {location.pathname === "/" && (
